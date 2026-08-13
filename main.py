@@ -24,6 +24,7 @@ class RAGSystem:
             openai_api_key=os.getenv("OPENAI_API_KEY"),
             openai_api_base=os.getenv("OPENROUTER_BASE_URL"),
             model_name=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo"),
+            temperature=0.3
             ) 
 
         self.embeddings = OpenAIEmbeddings(
@@ -37,18 +38,22 @@ class RAGSystem:
         self.rag_chain = None
         self.file_path = Path('./chroma_db')
         self.prompt = ChatPromptTemplate.from_template("""
-                Answer the question based ONLY on the following context.
-                If you can't answer, say "I don't know."
+                You are a helpful AI assistant. Answer the question based on the provided context.
+                If the context doesn't contain the answer, say "I don't know."
 
-                Context: {context}
-                Question: {question}
+                CONTEXT:
+                {context}
+
+                QUESTION: {question}
+
+                ANSWER:
             """)
 
-        self.text_spliiter = RecursiveCharacterTextSplitter(
-            chunk_size=500,
-            chunk_overlap=50,
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=800,
+            chunk_overlap=150,
             length_function=len,
-            separators=["\n\n","\n"," ",""]
+            separators=["\n\n","\n"," ","","."]
         )
 
 
@@ -75,8 +80,12 @@ class RAGSystem:
         
         # Load and split documents
         documents = loader.load()
-        print(documents)
         # Add source metadata
+        print(f"Loaded {len(documents)} pages/sections")
+        if documents:
+            preview = documents[0].page_content[:200]
+            print(f"Preview: {preview}...")
+
         for doc in documents:
             doc.metadata['source'] = file_path.name
         
@@ -111,7 +120,7 @@ class RAGSystem:
         self.retriever = self.vectorstore.as_retriever(
             search_type='similarity',
             search_kwargs={
-                'k': 3,
+                'k': 6,
             }
         )
         
@@ -119,6 +128,37 @@ class RAGSystem:
         print(f"Added {len(documents)} documents to the vector store.")
 
     
+    def query_debug(self, question: str):
+        """
+        Query and show debug information about retrieved chunks
+        """
+        if self.retriever is None:
+            raise ValueError("No documents loaded. Load a document or directory first.")
+        
+        # Get relevant documents
+        docs = self.retriever.invoke(question)
+        
+        # print(f"\n{'='*60}")
+        # print(f"Question: {question}")
+        # print(f"Retrieved {len(docs)} chunks:")
+        # print(f"{'='*60}")
+        
+        # for i, doc in enumerate(docs, 1):
+        #     print(f"\n--- Chunk {i} ---")
+        #     print(f"Source: {doc.metadata.get('source', 'Unknown')}")
+        #     print(f"Content: {doc.page_content[:200]}...")  # Show first 200 chars
+        #     print(f"Full content:\n{doc.page_content}")
+        #     print(f"{'-'*60}")
+        
+        # Get response
+        context = "\n\n".join(doc.page_content for doc in docs)
+        response = self.rag_chain.invoke(question)
+        
+        # print(f"\n{'='*60}")
+        # print(f"Answer: {response}")
+        # print(f"{'='*60}")
+        
+        return response
     
     def query(self, question: str) -> str:
         
@@ -131,7 +171,13 @@ class RAGSystem:
     def _build_chain(self):
             
             def format_docs(docs):
-                return "\n\n".join(doc.page_content for doc in docs)
+                formatted = []
+                for i, doc in enumerate(docs, 1):
+                    source = doc.metadata.get('source','Unknown')
+                    page = doc.metadata.get('page','N/A')
+                    content = ' '.join(doc.page_content.split())
+                    formatted.append(f"[Document {i}] - Source:{source}, Page:{page}\n{content}")
+                return "\n\n---\n\n".join(formatted)
             
             self.rag_chain = (
                 {
@@ -162,6 +208,14 @@ if __name__=="__main__":
         chunks = rag.load_document(file_path)
         rag.add_documents(chunks)
         print("✅ Document loaded successfully!")
+        question = input("Enter your question: ").strip()
+        try:
+            answer = rag.query_debug(question)
+            print("\n" + "="*50)
+            print(f"Answer: {answer}")
+            print("="*50)
+        except Exception as e:
+            print(f"❌ Error: {e}")
     except Exception as e:
         print(f"❌ Error: {e}")
 
