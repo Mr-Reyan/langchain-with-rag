@@ -114,7 +114,6 @@ def get_viral_gaming_news(limit: int = 10) -> str:
     
     response = model.invoke(messages)
 
-    
     try:
         import re
         match = re.search(r'\d+', response.content)
@@ -180,33 +179,33 @@ def scrape_and_summarize_article(link:str)->str:
     except Exception as e:
         return f"Error scraping article: {str(e)}"
 
-# import asyncio
-# from twikit import Client
-
-# @tool
-# def post_to_x(text: str) -> str:
-#     """
-#     Post a tweet to X.com.
+import asyncio
+from twikit import Client
+@tool
+def post_to_x(text: str) -> str:
+    """
+    Post a tweet to X.com (Twitter).
     
-#     Args:
-#         text: The tweet content
-#     """
-#     try:
-#         async def _post():
-#             client = Client('en-US')
-#             await client.login(
-#                 auth_info_1=os.getenv('TWITTER_USERNAME'),
-#                 auth_info_2=os.getenv('TWITTER_EMAIL'),
-#                 password=os.getenv('TWITTER_PASSWORD')
-#             )
-#             await client.create_tweet(text=text)
-#             return "Tweeted successfully!"
-        
-#         result = asyncio.run(_post())
-#         return result
-        
-#     except Exception as e:
-#         return f"❌ Error: {str(e)}"
+    Args:
+        text: The content of the tweet to post.
+    
+    Returns:
+        Success message or error string.
+    """
+    try:
+        async def _post():
+            client = Client('en-US')
+            client.set_cookies({
+                "auth_token": os.getenv('AUTH_TOKEN'),
+                "ct0": os.getenv('CT0')
+            })
+            await client.create_tweet(text)
+            return "Tweet posted successfully!"
+        return asyncio.run(_post())
+    except Exception as e:
+        return f"Error: {e}"
+
+    
 
 @tool
 def search_youtube_videos(query: str) -> str:
@@ -272,6 +271,7 @@ def search_youtube(link:str)->str:
     """
     webbrowser.open(link)
     return "Link opened"
+
 @tool 
 def download_youtube_video(link:str)->str:
     """
@@ -322,19 +322,20 @@ def google_search_and_read(query: str) -> str:
     encoded_query = urllib.parse.quote_plus(query)
     url = f"https://www.google.com/search?q={encoded_query}"
     webbrowser.open(url)
-    headers = {"User-Agent": "Mozilla/5.0"}  # Google blocks scrapers without headers
+    return "searched on google"
+    # headers = {"User-Agent": "Mozilla/5.0"}  # Google blocks scrapers without headers
 
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, "html.parser")
+    # response = requests.get(url, headers=headers)
+    # soup = BeautifulSoup(response.text, "html.parser")
 
-    results = []
-    for item in soup.select(".tF2Cxc")[:5]:  # Top 5 results
-        title = item.select_one("h3")
-        snippet = item.select_one(".VwiC3b")
-        if title and snippet:
-            results.append(f"- {title.text}: {snippet.text}")
+    # results = []
+    # for item in soup.select(".tF2Cxc")[:5]:  # Top 5 results
+    #     title = item.select_one("h3")
+    #     snippet = item.select_one(".VwiC3b")
+    #     if title and snippet:
+    #         results.append(f"- {title.text}: {snippet.text}")
 
-    return "Top search results:\n" + "\n".join(results)
+    # return "Top search results:\n" + "\n".join(results)
 
 
 @tool
@@ -488,7 +489,8 @@ ALL_TOOLS = [
     search_youtube_videos,
     download_youtube_video,
     get_viral_gaming_news,
-    scrape_and_summarize_article
+    scrape_and_summarize_article,
+    post_to_x
     # get_gaming_news
 ]
 
@@ -500,6 +502,7 @@ EXTERNAL_TOOLS = [
     google_search_and_read,
     search_youtube_videos,
     scrape_and_summarize_article,
-    get_viral_gaming_news
+    get_viral_gaming_news,
+    post_to_x
     # get_gaming_news,
     ]
