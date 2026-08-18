@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 from langchain_community.document_loaders import PyPDFLoader,Docx2txtLoader,TextLoader
 
+
+
 class RAGSystem:
     def __init__(self):
 
@@ -19,6 +21,7 @@ class RAGSystem:
             openai_api_key=os.getenv("OPENAI_API_KEY"),
             openai_api_base=os.getenv("OPENROUTER_BASE_URL"),
         )
+
 
 
         self.vectorstore = None

@@ -22,8 +22,10 @@ model = ChatOpenAI(
     model_name="gpt-3.5-turbo",
     openai_api_base=os.getenv("OPENROUTER_BASE_URL"),
     openai_api_key=os.getenv("OPENAI_API_KEY"),
-    
 )
+
+
+
 agent = create_agent(
     model=model,
     tools=tools.ALL_TOOLS,
@@ -38,6 +40,7 @@ agent = create_agent(
         )
     ],
 )
+
 
 config = {"configurable": {"thread_id": str(uuid7())}}
 messages = []

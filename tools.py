@@ -174,6 +174,7 @@ def scrape_and_summarize_article(link:str)->str:
             HumanMessage(content=human_prompt)
         ]
         response = model.invoke(messages)
+        print("SUMMARIZING>>>>")
         return f"{title_text}\n\n{response.content}\n\n📰 Source: {link}"
 
     except Exception as e:
@@ -181,6 +182,7 @@ def scrape_and_summarize_article(link:str)->str:
 
 import asyncio
 from twikit import Client
+
 @tool
 def post_to_x(text: str) -> str:
     """
@@ -188,7 +190,6 @@ def post_to_x(text: str) -> str:
     
     Args:
         text: The content of the tweet to post.
-    
     Returns:
         Success message or error string.
     """
@@ -199,7 +200,8 @@ def post_to_x(text: str) -> str:
                 "auth_token": os.getenv('AUTH_TOKEN'),
                 "ct0": os.getenv('CT0')
             })
-            await client.create_tweet(text)
+            a = await client.create_tweet(text)
+            print("TWETTED SUACAC")
             return "Tweet posted successfully!"
         return asyncio.run(_post())
     except Exception as e:
@@ -285,7 +287,7 @@ def download_youtube_video(link:str)->str:
             'format': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080]',
             'outtmpl': '%(title)s.%(ext)s',
             'restrictfilenames': True,
-            'remote_components': 'ejs:npm', 
+            'remote_components': 'ejs:npm',
             'quiet': True,
             'no_warnings': True,
             'merge_output_format': 'mp4',
@@ -357,7 +359,6 @@ def generate_random_number(start: int, end: int) -> str:
         return f"Random number between {start} and {end}: {result}"
     except Exception as e:
         return f"Error: {str(e)}"
-
 
 @tool
 def calculate(expression: str) -> str:
@@ -484,9 +485,9 @@ ALL_TOOLS = [
     generate_random_number,
     calculate,
     get_weather,
-    search_wikipedia,
     google_search_and_read,
     search_youtube_videos,
+    search_youtube,
     download_youtube_video,
     get_viral_gaming_news,
     scrape_and_summarize_article,
@@ -498,9 +499,9 @@ ALL_TOOLS = [
 UTILITY_TOOLS = [get_current_time, generate_random_number, calculate, download_youtube_video]
 EXTERNAL_TOOLS = [
     get_weather,
-    search_wikipedia,
     google_search_and_read,
     search_youtube_videos,
+    search_youtube,
     scrape_and_summarize_article,
     get_viral_gaming_news,
     post_to_x

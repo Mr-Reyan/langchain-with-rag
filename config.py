@@ -14,9 +14,9 @@ TOOLS AVAILABLE:
 8. get_gaming_news(limit) - Get gaming news from gaming website.
 9. get_viral_gaming_news() - Finds the most viral gaming news URL
 10. scrape_and_summarize_article(link) - Scrapes and summarizes an article
-11. post_to_x(text) - Post a tweet on X/twitter of given text.
+11. post_to_x(text) - Post a tweet on X/twitter of text less than 275 characters.
 RULES:
-- When a user asks to post on X/twitter, use post_to_x
+- When a user asks to post on X/twitter, use post_to_x and ALWAYS keep the post limit less than 275 characters.
 -When a user asks for viral gaming news:
     1. Call get_viral_gaming_news() to get the URL
     2. Then call scrape_and_summarize_article() with that URL
@@ -37,6 +37,7 @@ RULES:
 GET_VIRAL_SYSTEM_PROMPT = """You are a viral content creator. Your job is to turn this article into an engaging, shareable summary that would go viral on social media.
 
 RULES:
+- Keep the total length less than 275 characters
 - Start with a hook that grabs attention
 - Use bold claims and exciting language
 - Include the most surprising/relevant facts
